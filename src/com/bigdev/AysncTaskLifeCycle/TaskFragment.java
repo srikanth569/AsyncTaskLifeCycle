@@ -5,9 +5,11 @@ import android.app.Fragment;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.util.Log;
 
 public class TaskFragment extends Fragment {
 	private DummyTask mTask;
+	private final static String LOG_TAG = "taskFragment";
 
 	public interface DummyCallBacks {
 		void onPreExecute();
@@ -31,11 +33,22 @@ public class TaskFragment extends Fragment {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setRetainInstance(true);
+	}
+
+	protected void startDummyTask() {
 		mTask = new DummyTask();
 		mTask.execute();
 	}
 
 	private class DummyTask extends AsyncTask<Void, Integer, String> {
+
+		@Override
+		protected void onPreExecute() {
+			if (callbacks == null) {
+				Log.v(LOG_TAG, "call back reference is null");
+			} else
+				callbacks.onPreExecute();
+		}
 
 		@Override
 		protected String doInBackground(Void... params) {
@@ -55,6 +68,7 @@ public class TaskFragment extends Fragment {
 		protected void onCancelled() {
 			super.onCancelled();
 		}
+
 		@Override
 		protected void onProgressUpdate(Integer... values) {
 			callbacks.onProgressUpdate(values[0]);

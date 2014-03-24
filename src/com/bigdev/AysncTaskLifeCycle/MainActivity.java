@@ -1,43 +1,41 @@
 package com.bigdev.AysncTaskLifeCycle;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.FragmentManager;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.bigdev.AysncTaskLifeCycle.TaskFragment.DummyCallBacks;
 
-public class MainActivity extends Activity implements DummyCallBacks {
-	TextView tv;
+public class MainActivity extends Activity implements DummyCallBacks,
+		OnClickListener {
+	TextView statusText;
+	Button submitButton;
+	final static String LOG_TAG = "main_activity";
+	final static String CANCEL = "cancel";
+	final static String SUBMIT = "submit";
+	String currentStatus;
+	String buttonText;
 
-	@SuppressLint("NewApi")
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
 		setContentView(R.layout.activity_main);
-		tv = (TextView) findViewById(R.id.textView1);
-		Button btn = (Button) findViewById(R.id.button1);
-		btn.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				Toast.makeText(getApplicationContext(), "Submit clicked",
-						Toast.LENGTH_SHORT).show();
-				FragmentManager fm = getFragmentManager();
-				TaskFragment taskFragment = (TaskFragment) fm
-						.findFragmentByTag("task");
-				if (taskFragment == null) {
-					TaskFragment frag = new TaskFragment();
-					fm.beginTransaction().add(frag, "task").commit();
-				}
-			}
-		});
+		statusText = (TextView) findViewById(R.id.textView1);
+		submitButton = (Button) findViewById(R.id.button1);
+		submitButton.setOnClickListener(this);
+	}
+
+	@Override
+	protected void onPause() {
+		super.onPause();
+
 	}
 
 	@Override
@@ -49,28 +47,40 @@ public class MainActivity extends Activity implements DummyCallBacks {
 
 	@Override
 	public void onPreExecute() {
-		// TODO Auto-generated method stub
-
+		submitButton.setText(CANCEL);
 	}
 
 	@Override
 	public void onProgressUpdate(int percent) {
-		tv.setText("Loading " + percent + " %");
+		statusText.setText("Loading " + percent + " %");
 	}
 
 	@Override
 	public void onCancelled() {
-		// TODO Auto-generated method stub
-
+		submitButton.setText(SUBMIT);
 	}
 
-	@SuppressLint("NewApi")
 	@Override
 	public void onPostExecute(String result) {
-		tv.setText(result);
-		FragmentManager fm = getFragmentManager();
-		fm.popBackStack();
+		statusText.setText(result);
+		submitButton.setText(SUBMIT);
+	}
 
+	@Override
+	public void onClick(View v) {
+		if (v.getId() == R.id.button1) {
+			Log.v(LOG_TAG, "Button on click");
+			FragmentManager fm = getFragmentManager();
+			TaskFragment taskFragment = (TaskFragment) fm
+					.findFragmentByTag("task");
+
+			if (taskFragment == null) {
+				taskFragment = new TaskFragment();
+				fm.beginTransaction().add(taskFragment, "task").commit();
+				Log.v(LOG_TAG, "Task fragment added to back stack");
+			}
+			taskFragment.startDummyTask();
+		}
 	}
 
 }
